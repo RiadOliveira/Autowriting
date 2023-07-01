@@ -1,8 +1,8 @@
 import { useCallback, useState } from 'react';
 import { Container } from './styles';
 import { convertFileToImage } from 'utils/convertFileToImage';
-import { getCroppedImage } from 'utils/getCroppedImage';
-import { getRelevantPartOfCanvasAsImage } from 'utils/getRelevantPartOfCanvasAsImage';
+import { cropImageAsCanvas } from 'utils/cropImageAsCanvas';
+import { fixRotationAndExtractRelevantAreaOfCanvas } from 'utils/fixRotationAndExtractRelevantAreaOfCanvas';
 
 export const Home = () => {
   const [fontSprites, setFontSprites] = useState<HTMLImageElement | undefined>(
@@ -15,15 +15,17 @@ export const Home = () => {
 
       try {
         const parsedImage = await convertFileToImage(file);
-        const croppedImage = getCroppedImage(parsedImage, {
+        const croppedImage = cropImageAsCanvas(parsedImage, {
           startX: 0,
           startY: 0,
           width: parsedImage.width,
           height: parsedImage.height,
         });
 
-        document.body.appendChild(parsedImage);
-        document.body.appendChild(getRelevantPartOfCanvasAsImage(croppedImage));
+        //document.body.appendChild(alignCanvasRotation(croppedImage));
+
+        fixRotationAndExtractRelevantAreaOfCanvas(croppedImage);
+        document.body.appendChild(croppedImage);
 
         setFontSprites(parsedImage);
       } catch (error) {
