@@ -10,6 +10,11 @@ interface ExtremityCoordinates {
   maxY: number;
 }
 
+interface CorrectionOperationsOptions {
+  fixRotation: boolean;
+  extractRelevantArea: boolean;
+}
+
 const updateExtremityCoordinates = (
   extremityCoordinates: ExtremityCoordinates,
   xToVerify: number,
@@ -90,8 +95,12 @@ const extractCanvasRelevantArea = (
   drawImageOnCanvas(canvas, croppedCanvas, {}, context);
 };
 
-export const fixRotationAndExtractRelevantAreaOfCanvas = (
+export const performCorrectionOperationsOnCanvas = (
   canvas: HTMLCanvasElement,
+  {
+    fixRotation = true,
+    extractRelevantArea = true,
+  }: Partial<CorrectionOperationsOptions> = {},
 ) => {
   const context = canvas.getContext('2d')!;
   const { width, height } = canvas;
@@ -114,6 +123,11 @@ export const fixRotationAndExtractRelevantAreaOfCanvas = (
     }
   }
 
-  fixCanvasRotation(canvas, context, extremityCoordinates);
-  extractCanvasRelevantArea(canvas, context, extremityCoordinates);
+  if (fixRotation) {
+    fixCanvasRotation(canvas, context, extremityCoordinates);
+  }
+
+  if (extractRelevantArea) {
+    extractCanvasRelevantArea(canvas, context, extremityCoordinates);
+  }
 };

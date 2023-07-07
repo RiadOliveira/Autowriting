@@ -1,13 +1,15 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import { Container } from './styles';
 import { convertFileToCanvasImage } from 'utils/convertFileToCanvasImage';
-import { cropImageAsCanvas } from 'utils/cropImageAsCanvas';
-import { fixRotationAndExtractRelevantAreaOfCanvas } from 'utils/fixRotationAndExtractRelevantAreaOfCanvas';
+import { performCorrectionOperationsOnCanvas } from 'utils/performCorrectionOperationsOnCanvas';
+import { FontSpritesData } from 'types/FontSpritesData';
+import { generatePdfUsingFontSpritesData } from 'utils/generatePdfUsingFontSpritesData';
 
 export const Home = () => {
-  const [fontSprites, setFontSprites] = useState<HTMLCanvasElement | undefined>(
-    undefined,
-  );
+  const textInputRef = useRef<HTMLInputElement>(null);
+  const [fontSpritesData, setFontSpritesData] = useState<
+    FontSpritesData | undefined
+  >(undefined);
 
   const readFontSpritesFromFile = useCallback(
     async (file: File | undefined) => {
@@ -15,16 +17,26 @@ export const Home = () => {
 
       try {
         const parsedImage = await convertFileToCanvasImage(file);
-        fixRotationAndExtractRelevantAreaOfCanvas(parsedImage);
-        document.body.appendChild(parsedImage);
+        performCorrectionOperationsOnCanvas(parsedImage);
 
-        setFontSprites(parsedImage);
+        setFontSpritesData({
+          sprites: parsedImage,
+          columns: 16,
+          rows: 14,
+        });
       } catch (error) {
         alert('Algo deu errado!');
       }
     },
     [],
   );
+
+  const handleOnClickGenerate = useCallback(() => {
+    const { current } = textInputRef;
+    if (!fontSpritesData || !current) return;
+
+    generatePdfUsingFontSpritesData(current.value, fontSpritesData);
+  }, [fontSpritesData]);
 
   return (
     <Container>
@@ -34,6 +46,11 @@ export const Home = () => {
           readFontSpritesFromFile((files ?? [])[0])
         }
       />
+
+      <input ref={textInputRef} type="text" />
+      <button type="button" onClick={handleOnClickGenerate}>
+        Gerar
+      </button>
     </Container>
   );
 };
